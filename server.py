@@ -37,11 +37,11 @@ def teardown_request(exception):
         db.close()
 
 
-def register_user(username, motto, ip):
+def register_user(username, ip):
     try:
         cur = g.db.cursor()
-        cur.execute("INSERT INTO users (username,motto,ip) VALUES (?,?,?)",
-                    (username, motto, ip))
+        cur.execute("INSERT INTO users (username,ip) VALUES (?,?,?)",
+                    (username, ip))
 
         g.db.commit()
         return True
@@ -91,7 +91,6 @@ def register():
         return render_template('register.html')
     else:
         register_user(request.form["username"],
-                      request.form["motto"],
                       request.remote_addr)
         return redirect(url_for('score'))
 
