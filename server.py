@@ -1,29 +1,92 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, g, redirect, url_for
 from threading import Thread
 from argparse import ArgumentParser
 from time import sleep
+# from pprint import pprint
+
+import sqlite3
+import json
+
+
+with open('config.json') as data_file:
+    config = json.load(data_file)
+
+DATABASE = config['DATABASE']
 
 app = Flask(__name__)
+app.config.from_object(__name__)
 attack_interval = 60
 
 
-def register_user(username, ip, mac):
-    return
+def connect_db(row_factory):
+    conn = sqlite3.connect(app.config['DATABASE'])
+    conn.row_factory = row_factory
+    return conn
+
+
+# boiler plate code form the tutorial
+@app.before_request
+def before_request():
+    g.db = connect_db(sqlite3.Row)
+
+
+@app.teardown_request
+def teardown_request(exception):
+    db = getattr(g, 'db', None)
+    if db is not None:
+        db.close()
+
+
+def register_user(username, motto, ip):
+    try:
+        cur = g.db.cursor()
+        cur.execute("INSERT INTO users (ip,mac,score) VALUES (?,?,?)",
+                    (ip, username, 0))
+
+        g.db.commit()
+        return True
+    except:
+        g.db.rollback()
+        print("fuck man")
+
+    return False
+
+
+def query_db(query, db, args=(), one=False):
+    cur = db.execute(query, args)
+    rv = cur.fetchall()
+    cur.close()
+    return (rv[0] if rv else None) if one else rv
+
+
+def get_all_users(db_con):
+    user_query = "SELECT * FROM USERS"
+    return query_db(user_query, db_con)
+
+
+def user_exists_for_ip(ip):
+    return False
 
 
 @app.route("/")
 def score():
-    return render_template('scoreboard.html')
+    users = get_all_users(g.db)
+    return render_template('scoreboard.html', users=users)
 
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
+    # redirect to register if already registered
+    if user_exists_for_ip(request.remote_addr):
+        return redirect(url_for('/'))
+
     if request.method == 'GET':
-        print("blah")
         return render_template('register.html')
     else:
-        print(request.headers)
-        register_user("blah", "sd", "lks")
+        register_user(request.form["username"],
+                      request.form["motto"],
+                      request.remote_addr)
+        return redirect(url_for('score'))
 
 
 def attack():

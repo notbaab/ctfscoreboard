@@ -1,0 +1,3 @@
+flask/
+config.json
+*.db

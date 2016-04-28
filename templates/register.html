@@ -1,12 +1,36 @@
 {% extends "base.html" %}
 {% block title %}Register{% endblock %}
 {% block head %}
-  {{ super() }}
-  <style type="text/css">
+    {{ super() }}
+    <style type="text/css">
     .important { color: #336699; }
-  </style>
+    </style>
 {% endblock %}
 {% block content %}
-  <h1>Do some stuff</h1>
-  <p class="important">
+    <form class="form-horizontal" method="post">
+        <fieldset>
+            <!-- Form Name -->
+            <legend>Form Name</legend>
+            <!-- Text input-->
+            <div class="form-group">
+                <label class="col-md-4 control-label" for="username">Username</label>
+                <div class="col-md-4">
+                    <input id="username" name="username" type="text" placeholder="probablysomethingoffensive" class="form-control input-md" required="">
+                </div>
+            </div>
+            <!-- Text input-->
+            <div class="form-group">
+                <label class="col-md-4 control-label" for="motto">Team Motto</label>
+                <div class="col-md-4">
+                    <input id="motto" name="motto" type="text" placeholder="something something darkside" class="form-control input-md" required="">
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-md-4 control-label" for="submit"></label>
+                <div class="col-md-4">
+                    <button id="submit" name="submit" class="btn btn-primary">Submit</button>
+                </div>
+            </div>
+        </fieldset>
+    </form>
 {% endblock %}
