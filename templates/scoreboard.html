@@ -14,7 +14,7 @@
         <thead>
             <th>name</th>
             <th>score</th>
-            <th>ip?</th>
+            <th>motto</th>
         </thead>
         {% for user in users %}
             {% if current_user == user %}
@@ -22,15 +22,15 @@
             {% else %}
                 <tr>
             {% endif %}
-                <td>{{user["ip"]}}</td>
+                <td>{{user["username"]}}</td>
                 <td>{{user["score"]}}</td>
-                <td>{{user["mac"]}}</td>
+                <td>{{user["motto"]}}</td>
             </tr>
         {% endfor %}
     </table>
     <div class="form-group">
         <div class="col-md-4">
-            <a href="/" class="btn btn-primary">Register</a>
+            <a href="/register" class="btn btn-primary">Register</a>
         </div>
     </div>
 {% endblock %}

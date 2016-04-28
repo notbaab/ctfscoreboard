@@ -40,8 +40,8 @@ def teardown_request(exception):
 def register_user(username, motto, ip):
     try:
         cur = g.db.cursor()
-        cur.execute("INSERT INTO users (ip,mac,score) VALUES (?,?,?)",
-                    (ip, username, 0))
+        cur.execute("INSERT INTO users (username,motto,ip) VALUES (?,?,?)",
+                    (username, motto, ip))
 
         g.db.commit()
         return True
