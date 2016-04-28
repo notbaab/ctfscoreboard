@@ -65,7 +65,9 @@ def get_all_users(db_con):
 
 
 def user_exists_for_ip(ip):
-    return False
+    users = get_all_users(g.db)
+    matching_user = [user for user in users if user["ip"]  == ip]
+    return (True if len(matching_user) else False)
 
 
 def match_user_to_ip(users, ip):
@@ -85,7 +87,7 @@ def score():
 def register():
     # redirect to register if already registered
     if user_exists_for_ip(request.remote_addr):
-        return redirect(url_for('/'))
+        return redirect(url_for('score'))
 
     if request.method == 'GET':
         return render_template('register.html')
