@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, g, redirect, url_for
 from threading import Thread
 from argparse import ArgumentParser
 from time import sleep
-# from pprint import pprint
+from pprint import pprint
 
 import sqlite3
 import json
@@ -68,10 +68,17 @@ def user_exists_for_ip(ip):
     return False
 
 
+def match_user_to_ip(users, ip):
+    matching_user = [user for user in users if user["ip"]  == ip]
+    return (matching_user[0] if len(matching_user) else None)
+
+
 @app.route("/")
 def score():
     users = get_all_users(g.db)
-    return render_template('scoreboard.html', users=users)
+    current_user = match_user_to_ip(users, request.remote_addr)
+
+    return render_template('scoreboard.html', users=users, current_user=current_user)
 
 
 @app.route('/register', methods=['GET', 'POST'])

@@ -4,7 +4,9 @@
     {{ super() }}
     <link rel="stylesheet" href="{{ url_for('static', filename='pretty_table.css') }}">
     <style type="text/css">
-    .important { color: #336699; }
+    .current_user {
+        color: red;
+    }
     </style>
 {% endblock %}
 {% block content %}
@@ -15,11 +17,20 @@
             <th>ip?</th>
         </thead>
         {% for user in users %}
-            <tr>
+            {% if current_user == user %}
+                <tr class="current_user">
+            {% else %}
+                <tr>
+            {% endif %}
                 <td>{{user["ip"]}}</td>
                 <td>{{user["score"]}}</td>
                 <td>{{user["mac"]}}</td>
             </tr>
         {% endfor %}
     </table>
+    <div class="form-group">
+        <div class="col-md-4">
+            <a href="/" class="btn btn-primary">Register</a>
+        </div>
+    </div>
 {% endblock %}
