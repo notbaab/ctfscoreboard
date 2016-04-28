@@ -40,12 +40,13 @@ def teardown_request(exception):
 def register_user(username, ip):
     try:
         cur = g.db.cursor()
-        cur.execute("INSERT INTO users (username,ip) VALUES (?,?,?)",
+        cur.execute("INSERT INTO users (username,ip) VALUES (?,?)",
                     (username, ip))
 
         g.db.commit()
         return True
-    except:
+    except Exception as e:
+        print(e)
         g.db.rollback()
         print("fuck man")
 

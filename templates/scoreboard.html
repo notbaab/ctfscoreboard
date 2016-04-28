@@ -14,7 +14,6 @@
         <thead>
             <th>name</th>
             <th>score</th>
-            <th>motto</th>
         </thead>
         {% for user in users %}
             {% if current_user == user %}
@@ -24,7 +23,6 @@
             {% endif %}
                 <td>{{user["username"]}}</td>
                 <td>{{user["score"]}}</td>
-                <td>{{user["motto"]}}</td>
             </tr>
         {% endfor %}
     </table>
