@@ -6,4 +6,4 @@ create table users (
   score integer DEFAULT 0
 );
 
-INSERT INTO users (ip, username) VALUES ("120.0.0.123", "Test Guy");
+-- INSERT INTO users (ip, username) VALUES ("120.0.0.123", "Test Guy");

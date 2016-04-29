@@ -1,3 +1,5 @@
 flask/
+new_flask/
 config.json
 *.db
+*.pyc
