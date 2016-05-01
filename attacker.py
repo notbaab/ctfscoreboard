@@ -65,7 +65,7 @@ class AttackCoordinator(object):
         score = 0
 
         for attack in attack_list:
-            available = attack.service_check_func()
+            available = attack.service_check_func(ip_addr)
             service_score = 0
 
             if available:
