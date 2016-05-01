@@ -198,6 +198,9 @@ class test_vulns():
     def test_ssh_surnow(self, ip):
         return self.test_ssh_default(ip, "surnow", "surnowsurnow")
 
+    def check_service(self, ip):
+        return True
+
 
 if __name__ == "__main__":
     ip_addr = "192.168.0.30"
