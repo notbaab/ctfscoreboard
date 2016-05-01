@@ -17,8 +17,8 @@ def get_attack_config_list(attacker):
         ),
 
         AttackerFunctionTuple(
-            func=attacker.test_local_format_string,
-            args=("chloe", "chloechloe"),
+            func=attacker.test_local_format_string_chloe,
+            args=(),
             name="local_format_string",
             score=1,
             service_check_func=attacker.check_service,
@@ -71,6 +71,20 @@ def get_attack_config_list(attacker):
             func=attacker.test_reflected_xss,
             args=(),
             name="reflected_xss",
+            score=1,
+            service_check_func=attacker.check_service,
+        ),
+        AttackerFunctionTuple(
+            func=attacker.test_arbitrary_file_upload,
+            args=(),
+            name="arbitrary file upload",
+            score=1,
+            service_check_func=attacker.check_service,
+        ),
+        AttackerFunctionTuple(
+            func=attacker.test_dom_based_xss,
+            args=(),
+            name="dom based xss",
             score=1,
             service_check_func=attacker.check_service,
         ),
