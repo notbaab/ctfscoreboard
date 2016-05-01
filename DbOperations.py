@@ -54,7 +54,7 @@ def get_or_create_vulnerable_service(conn, user, service_name):
 
 
 def update_vulnerable_services(conn, ip, service_name, vulnerable, is_up):
-    user = user_for_ip(ip, conn)
+    user = user_for_ip(conn, ip)
     print(user)
     service = get_or_create_vulnerable_service(conn, user, service_name)
     update_query = "UPDATE vulnerable_services set vulnerable = (?)"
@@ -78,6 +78,11 @@ def get_all_users(conn):
     return query_db(conn, user_query)
 
 
+def get_all_services(conn, user):
+    service_query = "SELECT * FROM vulnerable_services WHERE user_id = (?)"
+    return query_db(conn, service_query, args=(user["id"],))
+
+
 def query_db(conn, query, args=(), one=False):
     cur = conn.execute(query, args)
     rv = cur.fetchall()
@@ -85,19 +90,19 @@ def query_db(conn, query, args=(), one=False):
     return (rv[0] if rv else None) if one else rv
 
 
-def user_exists_for_ip(ip, conn):
+def user_exists_for_ip(conn, ip):
     users = get_all_users(conn)
     matching_user = [user for user in users if user["ip"]  == ip]
     return (True if len(matching_user) else False)
 
 
-def user_for_ip(ip, conn):
+def user_for_ip(conn, ip):
     users = get_all_users(conn)
     matching_user = [user for user in users if user["ip"]  == ip]
     return (matching_user[0] if len(matching_user) else None)
 
 
-def match_user_to_ip(users, ip):
+def match_user_to_ip(ip, users):
     matching_user = [user for user in users if user["ip"]  == ip]
     return (matching_user[0] if len(matching_user) else None)
 

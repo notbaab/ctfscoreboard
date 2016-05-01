@@ -38,7 +38,7 @@ def teardown_request(exception):
 @app.route("/")
 def score():
     users = get_all_users(g.db)
-    current_user = match_user_to_ip(users, request.remote_addr)
+    current_user = match_user_to_ip(request.remote_addr, users)
 
     return render_template('scoreboard.html', users=users, current_user=current_user)
 
@@ -46,7 +46,7 @@ def score():
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     # redirect to register if already registered
-    if user_exists_for_ip(request.remote_addr):
+    if user_exists_for_ip(g.db, request.remote_addr):
         return redirect(url_for('score'))
 
     if request.method == 'GET':
