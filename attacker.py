@@ -86,9 +86,10 @@ class AttackCoordinator(object):
         sum_percentage = 0.0
 
         for idx, service in enumerate(services):
-            sum_percentage += service["uptime"] / (service["downtime"] + service["uptime"])
+            sum_percentage += float(service["uptime"]) / (service["downtime"] + service["uptime"])
 
         average = sum_percentage / len(services)
+
         return starting_score * average
 
     # accept a list of users that are currently busy processing?
