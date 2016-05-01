@@ -10,7 +10,7 @@ import sqlite3
 import json
 import sys
 
-DATABASE = "test.db"
+DATABASE = "data.db"
 
 app = Flask(__name__)
 from attacker import AttackCoordinator # Can't import test_vulns before Flask(__name__)
