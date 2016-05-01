@@ -10,10 +10,7 @@ import sqlite3
 import json
 import sys
 
-with open('config.json') as data_file:
-    config = json.load(data_file)
-
-DATABASE = config['DATABASE']
+DATABASE = "test.db"
 
 app = Flask(__name__)
 from attacker import AttackCoordinator # Can't import test_vulns before Flask(__name__)
@@ -25,7 +22,7 @@ attack_interval = 60
 # boiler plate code form the tutorial
 @app.before_request
 def before_request():
-    g.db = connect_db(app.config['DATABASE'], sqlite3.Row)
+    g.db = connect_db(DATABASE, sqlite3.Row)
 
 
 @app.teardown_request
