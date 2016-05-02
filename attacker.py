@@ -1,14 +1,9 @@
-from flask import Flask, render_template, request, g, redirect, url_for
 from threading import Thread
 from argparse import ArgumentParser
 from time import sleep
-from pprint import pprint
-from DbOperations import *
-
+from db_operations import *
 from pwn import *
 
-import multiprocessing
-import sys
 import test_vulns
 import sla_check_servers
 import requests
@@ -16,10 +11,21 @@ import attack_configs
 
 
 class AttackCoordinator(object):
-    """docstring for AttackCoordinator"""
-    def __init__(self, sqlLiteDb, interval=120, starting_delay=1):
+    """
+    The coordinator of the attacks. Resposnible for update database
+    based on how the attacks return
+    """
+    def __init__(self, sql_lite_db, interval=120, starting_delay=1):
+        """
+        Args:
+            sql_lite_db (string): Location of the database
+            interval (int, optional): How often you want to attack (if looping)
+            starting_delay (int, optional): How long after starting an attack
+                                            do you want to wait to start attacking
+
+        """
         super(AttackCoordinator, self).__init__()
-        self.db_file = sqlLiteDb
+        self.db_file = sql_lite_db
         self.interval = interval
         self.starting_delay = starting_delay
 
@@ -33,7 +39,23 @@ class AttackCoordinator(object):
         except Exception:
             return True  # ?
 
-    def _attack_wrapper(self, attack_fn, vulnerablity_name, passing_score=1, *args):
+    def score_vulnerability(self, attack_fn, passing_score=1, *args):
+        """Summary
+            Calls attack_fn and determines what score to give.
+            Assumes that attack_fn returns a True if the vulnerable, False if
+            fixed or None if the services is unavailable
+
+        Args:
+            attack_fn (function): Function to perform attack. Function should be
+                                  of signiture
+                                  attack_fn(ip, *args) -> (Bool or None)
+            passing_score (int, optional): The score to return if the attack
+                                           fails
+            *args (*args): Arguments to pass to the attack_fn
+
+        Returns:
+            Bool or None
+        """
         result = attack_fn(*args)
 
         if not result:
@@ -58,7 +80,10 @@ class AttackCoordinator(object):
             service_score = 0
 
             if available:
-                service_score = self._attack_wrapper(attack.func, attack.name, attack.score, ip_addr, *attack.args)
+                service_score = self.score_vulnerability(attack.func,
+                                                         attack.score,
+                                                         ip_addr,
+                                                         *attack.args)
                 if service_score is None:
                     available = False
                     service_score = 0
@@ -146,7 +171,6 @@ if __name__ == '__main__':
                         help='The database to look for the users')
 
     parser.add_argument('--single-ip', help='Perform attack on a single ip')
-    parser.add_argument('--generate', action="store_true", help='Fake threading')
 
     args = parser.parse_args()
 

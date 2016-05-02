@@ -1,20 +1,18 @@
 from flask import Flask, render_template, request, g, redirect, url_for
 from threading import Thread
 from argparse import ArgumentParser
-from time import sleep
-from pprint import pprint
-from DbOperations import *
+from db_operations import *
 
-import multiprocessing
 import sqlite3
-import json
-import sys
 import os.path
 
 DATABASE = "data.db"
 
 app = Flask(__name__)
-from attacker import AttackCoordinator # Can't import test_vulns before Flask(__name__)
+
+# Can't import pwn tools before Flask(__name__)
+from attacker import AttackCoordinator
+from pwn import log
 
 app.config.from_object(__name__)
 attack_interval = 60
@@ -70,17 +68,20 @@ def details():
 @app.route('/details/<vulnerability>')
 def get_vulnerability_details(vulnerability):
     startdir = os.path.abspath(os.curdir)
-    vulnerability_details_file = os.path.join(startdir, "vulnerability_details", vulnerability + ".txt")
+    vulnerability_details_file = os.path.join(startdir,
+                                              "vulnerability_details",
+                                              vulnerability + ".txt")
 
     requested_path = os.path.relpath(vulnerability_details_file, startdir)
     requested_path = os.path.abspath(requested_path)
 
-    if os.path.commonprefix([requested_path, startdir]) != startdir or not os.path.isfile(vulnerability_details_file):
+    if os.path.commonprefix([requested_path, startdir]) != startdir or \
+       not os.path.isfile(vulnerability_details_file):
         return redirect(url_for('score'))
 
     with open(vulnerability_details_file, 'r') as details_file:
         name = details_file.readline()
-        _ = details_file.readline()
+        details_file.readline()
         summary = details_file.read()
 
     return render_template('vulnerability_details.html', name=name, details=summary)
@@ -102,7 +103,7 @@ if __name__ == "__main__":
     if not args.no_attack:
         attack_interval = args.attack_interval
         attacker = AttackCoordinator(DATABASE, attack_interval)
-        print("Spawning attack thread")
+        log.info("Spawning attack thread")
         t = Thread(target=attacker.attack_loop)
         t.daemon = True  # catches ctrl-c interupts
         t.start()

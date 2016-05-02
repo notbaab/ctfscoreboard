@@ -19,41 +19,42 @@ def update_user_score(conn, user, field, value):
 def execute_trans(conn, statement, args_tup):
     try:
         cur = conn.cursor()
-        print("executing" + statement)
-        print(args_tup)
         cur.execute(statement, args_tup)
         conn.commit()
         return True
     except Exception as e:
-        print(e.message)
-        print("fuck man")
+        print("Rolling back. Transaction " + statement +
+              " failed with args " + str(args_tup) + "Error: " + e.message)
         conn.rollback()
 
     return False
 
 
 def register_user(conn, username, ip):
-    execute_trans(conn, "INSERT INTO users (username,ip) VALUES (?,?)", (username, ip))
+    execute_trans(
+        conn, "INSERT INTO users (username,ip) VALUES (?,?)", (username, ip))
 
 
 def get_or_create_vulnerable_service(conn, user, service_name):
     service_query = "SELECT * FROM vulnerable_services WHERE user_id = (?) AND service = (?)"
-    service = query_db(conn, service_query, args=(user["id"], service_name), one=True)
+    service = query_db(
+        conn, service_query, args=(user["id"], service_name), one=True)
 
     if not service:
         insert_query = "INSERT INTO vulnerable_services (user_id, service) VALUES (?,?)"
         success = execute_trans(conn, insert_query, (user["id"], service_name))
         if success:
-            service = query_db(conn, service_query, args=(user["id"], service_name), one=True)
+            service = query_db(
+                conn, service_query, args=(user["id"], service_name), one=True)
         else:
-            raise ValueError("Can't insert " + service_name + " for user " + str(user))
+            raise ValueError(
+                "Can't insert " + service_name + " for user " + str(user))
 
     return service
 
 
 def update_vulnerable_services(conn, ip, service_name, vulnerable, is_up):
     user = user_for_ip(conn, ip)
-    print(user)
     service = get_or_create_vulnerable_service(conn, user, service_name)
     update_query = "UPDATE vulnerable_services set vulnerable = (?)"
     args = [vulnerable]
@@ -90,18 +91,18 @@ def query_db(conn, query, args=(), one=False):
 
 def user_exists_for_ip(conn, ip):
     users = get_all_users(conn)
-    matching_user = [user for user in users if user["ip"]  == ip]
+    matching_user = [user for user in users if user["ip"] == ip]
     return (True if len(matching_user) else False)
 
 
 def user_for_ip(conn, ip):
     users = get_all_users(conn)
-    matching_user = [user for user in users if user["ip"]  == ip]
+    matching_user = [user for user in users if user["ip"] == ip]
     return (matching_user[0] if len(matching_user) else None)
 
 
 def match_user_to_ip(ip, users):
-    matching_user = [user for user in users if user["ip"]  == ip]
+    matching_user = [user for user in users if user["ip"] == ip]
     return (matching_user[0] if len(matching_user) else None)
 
 

@@ -1,13 +1,13 @@
 # ctfscoreboard
-pip3 install -r requirements.txt
+./install.sh
+pip install -r requirements.txt
 
 ## Debug Mode
-python3 server.py
+python server.py
 
 ## Prod Mode
-python3 server.py --prod
+python server.py --prod
 
-## Set attack interval (doesn't work now)
-python3 server.py --attack-time 60
+## No Attack mode
+python server.py --no-attack
 
-time in seconds
