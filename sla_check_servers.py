@@ -4,6 +4,10 @@ from pwn import *
 import requests
 
 class sla_check_servers:
+	def ping(self, ip):
+		ping = subprocess.Popen(["ping", "-c", "1", "-w", "1", ip], stdout=subprocess.PIPE)
+		ping.communicate()
+		return ping.returncode == 0
 	def check_buffer_overflow(self, ip):
 		"""
 		Check for buffer overflow by sending a length limited payload
@@ -151,6 +155,7 @@ if __name__ == "__main__":
 	context.log_level = 'error'
 	t = sla_check_servers()
 	
+	print t.ping(ip_good)
 	print t.check_buffer_overflow(ip_good)
 	print t.check_cmd_injection(ip_good)
 	print t.check_ssh(ip_good)
@@ -161,6 +166,7 @@ if __name__ == "__main__":
 	print t.check_arbitrary_file_upload(ip_good)
 	print t.check_sqli(ip_good)
 
+	print False == t.ping(ip_bad)
 	print False == t.check_buffer_overflow(ip_bad)
 	print False == t.check_cmd_injection(ip_bad)
 	print False == t.check_ssh(ip_bad)
