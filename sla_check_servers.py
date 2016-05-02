@@ -1,13 +1,9 @@
 #!/usr/bin/python
 
 from pwn import *
+import requests
 
 class sla_check_servers:
-	client = '';
-
-	def __init__(self, client):
-		self.client = client
-
 	def check_buffer_overflow(self, ip):
 		"""
 		Check for buffer overflow by sending a length limited payload
@@ -21,12 +17,13 @@ class sla_check_servers:
 			resp = conn.recv()
 			conn.send('aaaa\n')
 			conn.recv()
-			conn.close()
 		except Exception as e:
 			if conn is not None:
 				conn.close()
 			if type(e) is EOFError:
 				return True
+		if conn is not None:
+			conn.close()
 		return False
 
 	def check_cmd_injection(self, ip):
@@ -41,16 +38,16 @@ class sla_check_servers:
 			conn = remote(ip, 2222)
 			prompt = conn.recv()
 			conn.send("ls\n")
-			results = conn.recv()
-			conn.close()
-		except:
-			if conn is not None:
+			if "cmd_injection.py" in conn.recv():
 				conn.close()
-		if "cmd_injection.py" in results:
-			return True
+				return True
+		except:
+			pass
+		if conn is not None:
+			conn.close()
 		return False
 
-	def check_ssh(self, ip, username, pw):
+	def check_ssh(self, ip):
 		"""
 		Check for SSH service
 		SSH service is running on port 22
@@ -62,11 +59,12 @@ class sla_check_servers:
 			conn = remote(ip, 22)
 			results = conn.recv()
 			if "SSH-2.0-OpenSSH_5.8p1" in results:
-				return True
-			conn.close()
-		except Exception as e:
-			if conn is not None:
 				conn.close()
+				return True
+		except:
+			pass
+		if conn is not None:
+			conn.close()
 		return False
 
 	def check_lfi(self, ip):
@@ -83,16 +81,13 @@ class sla_check_servers:
 		try:
 			results0 = wget(url0)
 			results1 = wget(url1)
-			print results0
-			print results1
 			if sol0 in results0 and sol1 in results1:
 				return True
 		except:
-			return False
+			pass
 		return False
-
-	def check_local_format_string(self, ip, username, pw):
-		return check_ssh();
+	def check_local_format_string(self, ip):
+		return self.check_ssh(ip);
 
 	def check_reflected_xss(self, ip):
 		"""
@@ -106,13 +101,72 @@ class sla_check_servers:
 			if quote in wget(url):
 				return True
 		except:
-			return False
+			pass
 		return False
 
 	def check_dom_based_xss(self, ip):
+		url = "http://" + ip + "/dom_based_xss/index.html"
+		try:
+			results = wget(url)
+			if '<a href=' in results and 'mission1/' in results:
+				return True
+		except:
+			pass
+		return False
+
 	def check_arbitrary_file_upload(self, ip):
-	def check_sql(self, ip):
+		url0 = "http://" + ip + "/arbitrary_file_upload/upload.php"
+		url1 = "http://" + ip + "/arbitrary_file_upload/images/"
+		file0 = open('assets/file_test.jpg', 'rb')
+		files = {'image': file0}
+		try:
+			requests.post(url0, files=files)
+			file0.close()
+			if "file_test.jpg" in wget(url1):
+				return True
+		except:
+			pass
+		file0.close()
+		return False
+
+	def check_sqli(self, ip):
+		"""
+		Check for SQL injection (SQLi)
+		@param  ip: ip address of target
+		"""
+		payload = {'codename_input':'B-Rabbit', 'submitted':'TRUE'}
+		url = "http://" + ip + "/index.php"
+		try:
+			results = requests.post(url, data=payload)
+			if "Codename:</b> B" in results.text and \
+				"Location:</b> Baghdad," in results.text:
+				return True
+		except:
+			pass
+		return False
 
 if __name__ == "__main__":
-	print(sla_test.clients)
+	ip_good = '192.168.3.126'
+	ip_bad = '192.168.3.252'
+	context.log_level = 'error'
+	t = sla_check_servers()
 	
+	print t.check_buffer_overflow(ip_good)
+	print t.check_cmd_injection(ip_good)
+	print t.check_ssh(ip_good)
+	print t.check_lfi(ip_good)
+	print t.check_local_format_string(ip_good)
+	print t.check_reflected_xss(ip_good)
+	print t.check_dom_based_xss(ip_good)
+	print t.check_arbitrary_file_upload(ip_good)
+	print t.check_sqli(ip_good)
+
+	print False == t.check_buffer_overflow(ip_bad)
+	print False == t.check_cmd_injection(ip_bad)
+	print False == t.check_ssh(ip_bad)
+	print False == t.check_lfi(ip_bad)
+	print False == t.check_local_format_string(ip_bad)
+	print False == t.check_reflected_xss(ip_bad)
+	print False == t.check_dom_based_xss(ip_bad)
+	print False == t.check_arbitrary_file_upload(ip_bad)
+	print False == t.check_sqli(ip_bad)
