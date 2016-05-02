@@ -149,6 +149,9 @@ class sla_check_servers:
 			pass
 		return False
 
+	def dummy_check(self, ip):
+		return True
+
 if __name__ == "__main__":
 	ip_good = '192.168.3.126'
 	ip_bad = '192.168.3.252'

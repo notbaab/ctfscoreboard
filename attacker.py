@@ -10,6 +10,7 @@ from pwn import *
 import multiprocessing
 import sys
 import test_vulns
+import sla_check_servers
 import requests
 import attack_configs
 
@@ -33,25 +34,13 @@ class AttackCoordinator(object):
             return True  # ?
 
     def _attack_wrapper(self, attack_fn, vulnerablity_name, passing_score=1, *args):
-        # p = multiprocessing.Process(target=attack_fn, args=(args))
+        result = attack_fn(*args)
 
-        # p.start()
-        # p.join(timeout)
-
-        # # If thread is still active
-        # if p.is_alive():
-        #     print (str(attack_fn) + " is Taking too long, killing attack_fn")
-        #     # Terminate
-        #     p.terminate()
-        #     p.join()
-        #     return 0
-
-        # print ((str(attack_fn) + " Finished"))
-
-        if not attack_fn(*args):
-            # db = connect_db(self.db_file)
-
+        if not result:
             return passing_score
+
+        if result is None:
+            return None
 
         return 0
 
@@ -70,6 +59,9 @@ class AttackCoordinator(object):
 
             if available:
                 service_score = self._attack_wrapper(attack.func, attack.name, attack.score, ip_addr, *attack.args)
+                if service_score is None:
+                    available = False
+                    service_score = 0
 
             self.update_vulnerable_services_table(ip_addr, attack.name, service_score, available)
             score += service_score
@@ -108,8 +100,9 @@ class AttackCoordinator(object):
     def preform_attack_user_thread_func(self, user):
         db_conn = connect_db(self.db_file)
         attacker = test_vulns.test_vulns()
+        sla_checker = sla_check_servers.sla_check_servers()
 
-        attack_list = attack_configs.get_attack_config_list(attacker)
+        attack_list = attack_configs.get_attack_config_list(attacker, sla_checker)
         score = self.do_attacks(user["ip"], attacker, attack_list)
 
         weighted_score = self.calculate_new_score(user, score, attack_list)
