@@ -15,18 +15,18 @@ class AttackCoordinator(object):
     The coordinator of the attacks. Resposnible for update database
     based on how the attacks return
     """
-    def __init__(self, sql_lite_db, interval=120, starting_delay=1):
+    def __init__(self, sql_lite_db, attack_interval=120, starting_delay=1):
         """
         Args:
             sql_lite_db (string): Location of the database
-            interval (int, optional): How often you want to attack (if looping)
+            attack_interval (int, optional): How often you want to attack (if looping)
             starting_delay (int, optional): How long after starting an attack
                                             do you want to wait to start attacking
 
         """
         super(AttackCoordinator, self).__init__()
         self.db_file = sql_lite_db
-        self.interval = interval
+        self.attack_interval = attack_interval
         self.starting_delay = starting_delay
 
     def ping(self, ip, port=80, path=""):
@@ -148,7 +148,7 @@ class AttackCoordinator(object):
         users = get_all_users(db)
 
         user_to_thread_map = self.perform_attack(db, users)
-        sleep(self.interval)
+        sleep(self.attack_interval)
 
         return self.join_attack_threads(user_to_thread_map)
 

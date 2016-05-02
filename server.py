@@ -15,7 +15,8 @@ from attacker import AttackCoordinator
 from pwn import log
 
 app.config.from_object(__name__)
-attack_interval = 60
+DEFAULT_ATTACK_INTERVAL = 60
+DEFAULT_START_DELAY = 60 * 5  # five minutes
 
 
 # boiler plate code form the tutorial
@@ -89,7 +90,10 @@ def get_vulnerability_details(vulnerability):
 
 if __name__ == "__main__":
     parser = ArgumentParser(description='Start the attack server')
-    parser.add_argument('--attack-interval', default=attack_interval,
+    parser.add_argument('--attack-interval', default=DEFAULT_ATTACK_INTERVAL, type=int,
+                        help='the amount of time in seconds between each attack check')
+
+    parser.add_argument('--starting-delay', default=DEFAULT_START_DELAY, type=int,
                         help='the amount of time in seconds between each attack check')
 
     parser.add_argument('--prod', action='store_true',
@@ -102,7 +106,10 @@ if __name__ == "__main__":
 
     if not args.no_attack:
         attack_interval = args.attack_interval
-        attacker = AttackCoordinator(DATABASE, attack_interval)
+        starting_delay = args.starting_delay
+        attacker = AttackCoordinator(DATABASE,
+                                     attack_interval=attack_interval,
+                                     starting_delay=starting_delay)
         log.info("Spawning attack thread")
         t = Thread(target=attacker.attack_loop)
         t.daemon = True  # catches ctrl-c interupts
