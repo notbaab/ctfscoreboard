@@ -17,7 +17,7 @@
         </thead>
         {% for user in users %}
             {% if current_user == user %}
-                <tr class="current_user">
+                <tr onclick="window.document.location='/detailedscoreboard';" class="current_user">
             {% else %}
                 <tr>
             {% endif %}
@@ -29,6 +29,7 @@
     <div class="form-group">
         <div class="col-md-4">
             <a href="/register" class="btn btn-primary">Register</a>
+            <a href="/detailedscoreboard" class="btn btn-primary">View Detailed Scoreboard</a>
         </div>
     </div>
 {% endblock %}

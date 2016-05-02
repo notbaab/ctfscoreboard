@@ -13,6 +13,7 @@ create table vulnerable_services (
   uptime integer DEFAULT 0,
   downtime integer DEFAULT 0,
   vulnerable boolean DEFAULT true,
+  available boolean DEFAULT true,
   PRIMARY KEY (user_id, service),
   FOREIGN KEY(user_id) REFERENCES users(id)
 );

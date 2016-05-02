@@ -9,6 +9,7 @@ import multiprocessing
 import sqlite3
 import json
 import sys
+import os.path
 
 DATABASE = "data.db"
 
@@ -53,6 +54,36 @@ def register():
                       request.form["username"],
                       request.remote_addr)
         return redirect(url_for('score'))
+
+
+@app.route('/detailedscoreboard', methods=['GET'])
+def details():
+    # redirect to register if already registered
+    user = user_for_ip(g.db, request.remote_addr)
+    if not user:
+        return redirect(url_for('score'))
+
+    services = get_all_services(g.db, user)
+    return render_template('detailed_scoreboard.html', services=services)
+
+
+@app.route('/details/<vulnerability>')
+def get_vulnerability_details(vulnerability):
+    startdir = os.path.abspath(os.curdir)
+    vulnerability_details_file = os.path.join(startdir, "vulnerability_details", vulnerability + ".txt")
+
+    requested_path = os.path.relpath(vulnerability_details_file, startdir)
+    requested_path = os.path.abspath(requested_path)
+
+    if os.path.commonprefix([requested_path, startdir]) != startdir or not os.path.isfile(vulnerability_details_file):
+        return redirect(url_for('score'))
+
+    with open(vulnerability_details_file, 'r') as details_file:
+        name = details_file.readline()
+        _ = details_file.readline()
+        summary = details_file.read()
+
+    return render_template('vulnerability_details.html', name=name, details=summary)
 
 
 if __name__ == "__main__":

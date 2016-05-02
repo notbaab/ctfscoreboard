@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Score{% endblock %}
+{% block head %}
+    {{ super() }}
+    <link rel="stylesheet" href="{{ url_for('static', filename='pretty_table.css') }}">
+    <style type="text/css">
+    .bad {
+        color: red;
+    }
+    .good {
+        color: green;
+    }
+    </style>
+{% endblock %}
+{% block content %}
+    <table class="table table-striped table-bordered table-hover ">
+        <thead>
+            <th data-toggle="tooltip" title="Name of Vulnerabiltiy">Vulnerability Name</th>
+            <th>Vulnerable</th>
+            <th>Service Available</th>
+        </thead>
+        {% for service in services %}
+            <tr onclick="show_vulnerability_details('{{service["service"]}}');" >
+                <td>{{service["service"]}}</td>
+        <!-- Col 2 -->
+        {% if service["vulnerable"] %}
+                <td class="bad">Vulnderable!</td>
+        {% else %}
+                <td class="good">Fixed!</td>
+        {% endif %}
+
+        <!-- Col 3 -->
+        {% if service["available"] %}
+                <td class="good">Service Up!</td>
+        {% else %}
+                <td class="bad">Service down!</td>
+        {% endif %}
+            </tr>
+
+        {% endfor %}
+    </table>
+    <script>
+        function show_vulnerability_details(service)
+        {
+            url = service.replace(/\s+/g, '');
+            window.document.location = "/details/" + url;
+        }
+    </script>
+{% endblock %}

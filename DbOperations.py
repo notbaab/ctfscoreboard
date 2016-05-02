@@ -39,8 +39,6 @@ def register_user(conn, username, ip):
 def get_or_create_vulnerable_service(conn, user, service_name):
     service_query = "SELECT * FROM vulnerable_services WHERE user_id = (?) AND service = (?)"
     service = query_db(conn, service_query, args=(user["id"], service_name), one=True)
-    print("service")
-    print(service)
 
     if not service:
         insert_query = "INSERT INTO vulnerable_services (user_id, service) VALUES (?,?)"
@@ -60,10 +58,10 @@ def update_vulnerable_services(conn, ip, service_name, vulnerable, is_up):
     update_query = "UPDATE vulnerable_services set vulnerable = (?)"
     args = [vulnerable]
     if is_up:
-        update_query += ", uptime = (?)" + str()
+        update_query += ", uptime = (?), available = 1" + str()
         args.append(service["uptime"] + 1)
     else:
-        update_query += ", downtime = (?)"
+        update_query += ", downtime = (?), available = 0"
         args.append(service["downtime"] + 1)
 
     update_query += " WHERE user_id = (?) AND service = (?)"

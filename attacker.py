@@ -149,7 +149,7 @@ class AttackCoordinator(object):
 
 if __name__ == '__main__':
     parser = ArgumentParser(description='Perform attack')
-    parser.add_argument('--db-file', default="test.db",
+    parser.add_argument('--db-file', default="data.db",
                         help='The database to look for the users')
 
     parser.add_argument('--single-ip', help='Perform attack on a single ip')
