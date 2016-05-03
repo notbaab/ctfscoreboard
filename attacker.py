@@ -15,7 +15,7 @@ class AttackCoordinator(object):
     The coordinator of the attacks. Resposnible for update database
     based on how the attacks return
     """
-    def __init__(self, sql_lite_db, attack_interval=120, starting_delay=1):
+    def __init__(self, sql_lite_db, attack_interval=300, starting_delay=1):
         """
         Args:
             sql_lite_db (string): Location of the database
@@ -171,11 +171,14 @@ if __name__ == '__main__':
                         help='The database to look for the users')
 
     parser.add_argument('--single-ip', help='Perform attack on a single ip')
+    parser.add_argument('--loop', help='Perform attack on a single ip', action='store_true')
 
     args = parser.parse_args()
 
     attacker = AttackCoordinator(args.db_file)
     if args.single_ip:
         attacker.perform_attack_on_ip(args.single_ip)
+    elif args.loop:
+	attacker.attack_loop()
     else:
         attacker.__attack_loop_inner_function__({})
