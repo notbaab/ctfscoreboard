@@ -15,7 +15,7 @@
             <th>name</th>
             <th>score</th>
         </thead>
-        {% for user in users %}
+        {% for user in users|sort(attribute='score', reverse=True) %}
             {% if current_user == user %}
                 <tr onclick="window.document.location='/detailedscoreboard';" class="current_user">
             {% else %}
