@@ -13,7 +13,7 @@ def connect_db(db_file, row_factory=sqlite3.Row):
 
 def update_user_score(conn, user, field, value):
     """Should be in db operations"""
-    return execute_trans(conn, "UPDATE USERS set score = (?)", (value,))
+    return execute_trans(conn, "UPDATE USERS set score = (?) where id = (?)", (value,user["id"]))
 
 
 def execute_trans(conn, statement, args_tup):
