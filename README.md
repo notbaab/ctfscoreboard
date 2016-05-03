@@ -1,6 +1,7 @@
 # ctfscoreboard
 ./install.sh
-pip install -r requirements.txt
+
+sudo pip install -r requirements.txt
 
 ## Debug Mode
 python server.py
