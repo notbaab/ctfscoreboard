@@ -11,15 +11,14 @@ def get_attack_config_list(attacker, sla_checker):
         AttackerFunctionTuple(
             func=attacker.test_cmd_injection,
             args=(),
-            name="cmd_injection",
+            name="Command Injection",
             score=1,
             service_check_func=sla_checker.check_cmd_injection,
         ),
-
         AttackerFunctionTuple(
             func=attacker.test_local_format_string_chloe,
             args=(),
-            name="local_format_string",
+            name="Local Format String",
             score=1,
             service_check_func=sla_checker.check_local_format_string,
         ),
@@ -27,7 +26,7 @@ def get_attack_config_list(attacker, sla_checker):
         AttackerFunctionTuple(
             func=attacker.test_buffer_overflow,
             args=(),
-            name="buffer_overflow",
+            name="Buffer Overflow",
             score=1,
             service_check_func=sla_checker.check_buffer_overflow,
         ),
@@ -56,7 +55,7 @@ def get_attack_config_list(attacker, sla_checker):
         AttackerFunctionTuple(
             func=attacker.test_backdoor_1,
             args=(),
-            name="backdoor_1",
+            name="backdoor",
             score=1,
             service_check_func=sla_checker.dummy_check,
         ),
@@ -70,7 +69,7 @@ def get_attack_config_list(attacker, sla_checker):
         AttackerFunctionTuple(
             func=attacker.test_reflected_xss,
             args=(),
-            name="reflected_xss",
+            name="reflected xss",
             score=1,
             service_check_func=sla_checker.check_reflected_xss,
         ),

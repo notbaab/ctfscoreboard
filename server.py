@@ -15,7 +15,7 @@ from attacker import AttackCoordinator
 from pwn import log
 
 app.config.from_object(__name__)
-DEFAULT_ATTACK_INTERVAL = 60
+DEFAULT_ATTACK_INTERVAL = 60 * 5
 DEFAULT_START_DELAY = 60 * 5  # five minutes
 
 
